@@ -1,0 +1,25 @@
+name: Daily Automated Push
+
+on:
+  schedule:
+    # Runs every day at 12:00 AM UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allows manual trigger from the GitHub UI
+
+jobs:
+  daily-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Configure Git permissions
+        # This step is crucial for the workflow to be able to push back to the repository.
+        # It uses the GITHUB_TOKEN which has temporary write access.
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+      
+      - name: Run daily update script
+        run: ./update_file.sh
